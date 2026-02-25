@@ -16,29 +16,40 @@
 |------|--------|------|
 | `callback-server.js` | 纯 Node.js | HTTP 回调服务器，监听 3200 端口 |
 | `cat-cafe-mcp.js` | MCP SDK | MCP Server，提供两个工具 |
-| `run-cat.js` | 纯 Node.js | 调用 Claude CLI，解析 NDJSON 输出 |
-| `run.js` | 纯 Node.js | 一键启动演示 |
+| `run-cat.js` | 纯 Node.js | 从 .env 读取配置，调用 Claude CLI |
+| `run.js` | 纯 Node.js | 一键启动，自动生成 .env 文件 |
+| `.env` | 配置文件 | 存储凭证（运行后自动生成） |
 
 ## 快速开始
 
+### 方式一：一键启动（推荐）
+
 ```bash
-# 一键启动
 node run.js
 ```
 
-或分步启动：
+自动完成：
+1. 启动 callback-server.js
+2. 生成凭证并保存到 .env 文件
+3. 启动 run-cat.js（从 .env 读取配置）
 
-**终端 1：**
+### 方式二：分步启动
+
+**终端 1：启动回调服务器**
 ```bash
 node callback-server.js
 # 记录输出的 Invocation ID 和 Callback Token
 ```
 
-**终端 2：**
+**创建 .env 文件：**
 ```bash
-CAT_CAFE_API_URL=http://localhost:3200 \
-CAT_CAFE_INVOCATION_ID=xxx \
-CAT_CAFE_CALLBACK_TOKEN=yyy \
+CAT_CAFE_API_URL=http://localhost:3200
+CAT_CAFE_INVOCATION_ID=你的 invocation-id
+CAT_CAFE_CALLBACK_TOKEN=你的 callback-token
+```
+
+**终端 2：启动 AI（从 .env 读取）**
+```bash
 node run-cat.js
 ```
 

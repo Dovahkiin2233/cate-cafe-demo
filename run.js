@@ -5,11 +5,13 @@
  * 
  * 1. 启动 callback-server.js
  * 2. 捕获输出的凭证
- * 3. 设置环境变量启动 run-cat.js
+ * 3. 保存到 .env 文件
+ * 4. 启动 run-cat.js（从 .env 读取配置）
  */
 
 const { spawn } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
 let catStarted = false;
 
@@ -38,12 +40,22 @@ server.stdout.on('data', (data) => {
   // 打印服务器输出
   process.stdout.write(`[Server] ${str}`);
   
-  // 服务器就绪，启动 cat
+  // 服务器就绪，保存凭证并启动 cat
   if (str.includes('按 Ctrl+C') && invocationId && callbackToken && !catStarted) {
     catStarted = true;
     
+    // 保存到 .env 文件
+    const envContent = `# 猫咖 MCP 回传系统 - 环境变量配置
+# 自动生成于 ${new Date().toISOString()}
+
+CAT_CAFE_API_URL=http://localhost:3200
+CAT_CAFE_INVOCATION_ID=${invocationId}
+CAT_CAFE_CALLBACK_TOKEN=${callbackToken}
+`;
+    fs.writeFileSync(path.join(__dirname, '.env'), envContent);
+    
     console.log('');
-    console.log('[凭证已获取]');
+    console.log('[凭证已获取并保存到 .env 文件]');
     console.log(`  Invocation ID: ${invocationId}`);
     console.log(`  Callback Token: ${callbackToken}`);
     console.log('');
@@ -51,16 +63,10 @@ server.stdout.on('data', (data) => {
     console.log('═══════════════════════════════════════════');
     console.log('');
     
-    const env = {
-      ...process.env,
-      CAT_CAFE_API_URL: 'http://localhost:3200',
-      CAT_CAFE_INVOCATION_ID: invocationId,
-      CAT_CAFE_CALLBACK_TOKEN: callbackToken
-    };
-    
+    // 启动 run-cat.js（它会自动从 .env 读取）
     const cat = spawn('node', [path.join(__dirname, 'run-cat.js')], {
       stdio: ['ignore', 'pipe', 'pipe'],
-      env
+      env: process.env
     });
     
     cat.stdout.on('data', (data) => process.stdout.write(data.toString()));

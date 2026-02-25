@@ -5,16 +5,36 @@
  * 
  * 纯原生 Node.js 实现，不用任何框架
  * 监听 3200 端口，接收 AI 通过 MCP 工具发送的消息
+ * 启动时自动生成 .env 文件
  */
 
 const http = require('http');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 // 生成一对 UUID 作为验证凭证
 const invocationId = crypto.randomUUID();
 const callbackToken = crypto.randomUUID();
 
 const PORT = 3200;
+
+// 写入 .env 文件
+const envPath = path.join(__dirname, '.env');
+const envContent = `# 猫咖 MCP 回传系统 - 环境变量配置
+# 自动生成于 ${new Date().toISOString()}
+
+CAT_CAFE_API_URL=http://localhost:${PORT}
+CAT_CAFE_INVOCATION_ID=${invocationId}
+CAT_CAFE_CALLBACK_TOKEN=${callbackToken}
+`;
+
+try {
+  fs.writeFileSync(envPath, envContent);
+  console.log(`✅ .env 文件已生成：${envPath}`);
+} catch (err) {
+  console.error(`❌ 无法写入 .env 文件：${err.message}`);
+}
 
 // 模拟的对话历史（用于 thread-context 返回）
 const mockContext = {
